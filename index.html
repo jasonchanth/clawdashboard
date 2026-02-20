@@ -71,13 +71,13 @@
         .badge-red { background: #7f1d1d; color: #fca5a5; }
         .badge-yellow { background: #713f12; color: #fde047; }
         .badge-indigo { background: #312e81; color: #a5b4fc; }
-        .cron-item, .session-item, .task-item {
+        .cron-item, .task-item {
             padding: 12px;
             background: #0f0f1a;
             border-radius: 8px;
             margin-bottom: 10px;
         }
-        .cron-item:last-child, .session-item:last-child, .task-item:last-child { margin-bottom: 0; }
+        .cron-item:last-child, .task-item:last-child { margin-bottom: 0; }
         .item-header {
             display: flex;
             justify-content: space-between;
@@ -162,25 +162,19 @@
             font-size: 0.75rem;
             font-weight: 500;
         }
-        /* Skills Section */
         .skills-section {
             background: linear-gradient(135deg, #1a1a2e 0%, #0f172a 100%);
         }
         .skill-category {
             margin-bottom: 15px;
         }
-        .skill-category:last-child {
-            margin-bottom: 0;
-        }
+        .skill-category:last-child { margin-bottom: 0; }
         .category-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
             font-size: 0.85rem;
             color: #888;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
         .category-skills {
             display: flex;
@@ -200,7 +194,6 @@
             font-size: 0.65rem;
             opacity: 0.7;
         }
-        /* Chart Container */
         .chart-container {
             position: relative;
             height: 250px;
@@ -243,146 +236,129 @@
                 const data = await response.json();
                 renderDashboard(data);
             } catch (error) {
-                content.innerHTML = `<div class="error">錯誤: ${error.message}</div>`;
+                content.innerHTML = '<div class="error">錯誤: ' + error.message + '</div>';
             }
         }
 
         function renderDashboard(data) {
             const content = document.getElementById('content');
             const updatedTime = new Date(data.updatedAt).toLocaleString('zh-HK');
-            document.getElementById('last-updated-time').textContent = `最後更新: ${updatedTime}`;
+            document.getElementById('last-updated-time').textContent = '最後更新: ' + updatedTime;
 
-            content.innerHTML = `
-                <div class="grid">
-                    <!-- 系統狀態 -->
-                    <div class="card">
-                        <h2>⚙️ 系統狀態</h2>
-                        <div class="stat-row">
-                            <span class="stat-label">版本</span>
-                            <span class="stat-value">${data.version || 'N/A'}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">當前模型</span>
-                            <span class="stat-value">${data.model || 'N/A'}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">活躍 Sessions</span>
-                            <span class="stat-value">${typeof data.sessions === 'number' ? data.sessions : (data.sessions?.length || 0)}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Token 使用量</span>
-                            <span class="stat-value">${data.tokens?.total?.toLocaleString() || 'N/A'}</span>
-                        </div>
-                    </div>
+            let html = '<div class="grid">';
+            
+            // 系統狀態
+            html += '<div class="card">';
+            html += '<h2>⚙️ 系統狀態</h2>';
+            html += '<div class="stat-row"><span class="stat-label">版本</span><span class="stat-value">' + (data.version || 'N/A') + '</span></div>';
+            html += '<div class="stat-row"><span class="stat-label">當前模型</span><span class="stat-value">' + (data.model || 'N/A') + '</span></div>';
+            html += '<div class="stat-row"><span class="stat-label">活躍 Sessions</span><span class="stat-value">' + (typeof data.sessions === 'number' ? data.sessions : (data.sessions?.length || 0)) + '</span></div>';
+            html += '<div class="stat-row"><span class="stat-label">Token 使用量</span><span class="stat-value">' + (data.tokens?.total?.toLocaleString() || 'N/A') + '</span></div>';
+            html += '</div>';
 
-                    <!-- Cron Jobs -->
-                    <div class="card">
-                        <h2>⏰ Cron Jobs (${data.cronJobs?.length || 0})</h2>
-                        ${data.cronJobs?.map(job => `
-                            <div class="cron-item">
-                                <div class="item-header">
-                                    <span class="item-name">${job.name}</span>
-                                    <span class="badge ${job.enabled ? 'badge-green' : 'badge-orange'}">${job.enabled ? '啟用' : '停用'}</span>
-                                </div>
-                                <div class="item-meta">${job.schedule}</div>
-                            </div>
-                        `).join('') || '<div class="empty-state">無 Cron Jobs</div>'}
-                    </div>
+            // Cron Jobs
+            html += '<div class="card">';
+            html += '<h2>⏰ Cron Jobs (' + (data.cronJobs?.length || 0) + ')</h2>';
+            if (data.cronJobs?.length) {
+                data.cronJobs.forEach(job => {
+                    html += '<div class="cron-item">';
+                    html += '<div class="item-header"><span class="item-name">' + job.name + '</span><span class="badge ' + (job.enabled ? 'badge-green' : 'badge-orange') + '"\u003e' + (job.enabled ? '啟用' : '停用') + '</span></div>';
+                    html += '<div class="item-meta">' + job.schedule + '</div>';
+                    html += '</div>';
+                });
+            } else {
+                html += '<div class="empty-state">無 Cron Jobs</div>';
+            }
+            html += '</div>';
 
-                    <!-- 正在執行 -->
-                    <div class="card executing-section">
-                        <h2>⚡ 正在執行 (${data.executingTasks?.length || 0})</h2>
-                        ${data.executingTasks?.length > 0 
-                            ? data.executingTasks.map(task => `
-                                <div class="executing-item">
-                                    <div class="item-name">${task.name || task}</div>
-                                    ${task.startTime ? `<div class="item-meta">開始: ${new Date(task.startTime).toLocaleString('zh-HK')}</div>` : ''}
-                                </div>
-                            `).join('')
-                            : '<div class="empty-state">目前沒有正在執行的任務</div>'
-                        }
-                    </div>
+            // 正在執行
+            html += '<div class="card executing-section">';
+            html += '<h2>⚡ 正在執行 (' + (data.executingTasks?.length || 0) + ')</h2>';
+            if (data.executingTasks?.length) {
+                data.executingTasks.forEach(task => {
+                    html += '<div class="executing-item">';
+                    html += '<div class="item-name">' + (task.name || task) + '</div>';
+                    if (task.startTime) {
+                        html += '<div class="item-meta">開始: ' + new Date(task.startTime).toLocaleString('zh-HK') + '</div>';
+                    }
+                    html += '</div>';
+                });
+            } else {
+                html += '<div class="empty-state">目前沒有正在執行的任務</div>';
+            }
+            html += '</div>';
 
-                    <!-- Ideas -->
-                    <div class="card ideas-section">
-                        <h2>💡 Ideas (${data.ideas?.length || 0})</h2>
-                        ${data.ideas?.length > 0
-                            ? data.ideas.map(idea => `
-                                <div class="idea-item">
-                                    <div class="item-name">${idea.text || idea}</div>
-                                    ${idea.createdAt ? `<div class="item-meta">${new Date(idea.createdAt).toLocaleString('zh-HK')}</div>` : ''}
-                                </div>
-                            `).join('')
-                            : '<div class="empty-state">暫無 Ideas</div>'
-                        }
-                    </div>
+            // Ideas
+            html += '<div class="card ideas-section">';
+            html += '<h2>💡 Ideas (' + (data.ideas?.length || 0) + ')</h2>';
+            if (data.ideas?.length) {
+                data.ideas.forEach(idea => {
+                    html += '<div class="idea-item">';
+                    html += '<div class="item-name">' + (idea.text || idea) + '</div>';
+                    if (idea.createdAt) {
+                        html += '<div class="item-meta">' + new Date(idea.createdAt).toLocaleString('zh-HK') + '</div>';
+                    }
+                    html += '</div>';
+                });
+            } else {
+                html += '<div class="empty-state">暫無 Ideas</div>';
+            }
+            html += '</div>';
 
-                    <!-- Token Usage Chart -->
-                    <div class="card wide token-chart-section">
-                        <h2>📊 Token Usage (過去7天)</h2>
-                        <div class="chart-container">
-                            <canvas id="tokenChart"></canvas>
-                        </div>
-                    </div>
+            // 已完成
+            html += '<div class="card">';
+            html += '<h2>✅ 已完成 (' + (data.completedTasks?.length || 0) + ')</h2>';
+            if (data.completedTasks?.length) {
+                data.completedTasks.slice(0, 5).forEach(task => {
+                    html += '<div class="task-item">';
+                    html += '<div class="item-name">' + (task.task || task.name || task) + '</div>';
+                    if (task.time) {
+                        html += '<div class="item-meta">' + task.time + '</div>';
+                    }
+                    html += '</div>';
+                });
+            } else {
+                html += '<div class="empty-state">暫無已完成任務</div>';
+            }
+            html += '</div>';
 
-                    <!-- Skills -->
-                    <div class="card wide skills-section">
-                        <h2>🛠️ 已安裝 Skills (${data.skills?.length || 0})</h2>
-                        <div id="skills-container"></div>
-                    </div>
+            // Agents
+            html += '<div class="card agents-section">';
+            html += '<h2>🤖 Agents (' + (data.agents?.length || 1) + ')</h2>';
+            if (data.agents?.length) {
+                data.agents.forEach(agent => {
+                    html += '<div class="agent-item">';
+                    html += '<div class="item-header"><span class="item-name">' + agent.name + '</span><span class="badge badge-blue">' + agent.model + '</span></div>';
+                    html += '<div class="agent-skills">';
+                    if (agent.skills?.length) {
+                        agent.skills.forEach(skill => {
+                            html += '<span class="skill-tag">' + skill + '</span>';
+                        });
+                    }
+                    html += '</div>';
+                    html += '</div>';
+                });
+            } else {
+                html += '<div class="agent-item"><div class="item-header"><span class="item-name">Main Agent</span><span class="badge badge-blue">kimi-coding/k2p5</span></div><div class="agent-skills"><span class="skill-tag">read</span><span class="skill-tag">write</span><span class="skill-tag">edit</span><span class="skill-tag">exec</span><span class="skill-tag">cron</span></div></div>';
+            }
+            html += '</div>';
 
-                    <!-- 已完成 -->
-                    <div class="card">
-                        <h2>✅ 已完成 (${data.completedTasks?.length || 0})</h2>
-                        ${data.completedTasks?.slice(0, 5).map(task => `
-                            <div class="task-item">
-                                <div class="item-name">${task.task || task.name || task}</div>
-                                ${task.time ? `<div class="item-meta">${task.time}</div>` : ''}
-                            </div>
-                        `).join('') || '<div class="empty-state">暫無已完成任務</div>'}
-                    </div>
+            // Token Usage Chart
+            html += '<div class="card wide token-chart-section">';
+            html += '<h2>📊 Token Usage (過去7天)</h2>';
+            html += '<div class="chart-container"><canvas id="tokenChart"></canvas></div>';
+            html += '</div>';
 
-                    <!-- Agents -->
-                    <div class="card agents-section">
-                        <h2>🤖 Agents (${data.agents?.length || 1})</h2>
-                        ${data.agents?.length > 0
-                            ? data.agents.map(agent => `
-                                <div class="agent-item">
-                                    <div class="item-header">
-                                        <span class="item-name">${agent.name}</span>
-                                        <span class="badge badge-blue">${agent.model}</span>
-                                    </div>
-                                    <div class="agent-skills">
-                                        ${agent.skills?.map(skill => `<span class="skill-tag">${skill}</span>`).join('') || ''}
-                                    </div>
-                                </div>
-                            `).join('')
-                            : `
-                                <div class="agent-item">
-                                    <div class="item-header">
-                                        <span class="item-name">Main Agent</span>
-                                        <span class="badge badge-blue">kimi-coding/k2p5</span>
-                                    </div>
-                                    <div class="agent-skills">
-                                        <span class="skill-tag">read</span>
-                                        <span class="skill-tag">write</span>
-                                        <span class="skill-tag">edit</span>
-                                        <span class="skill-tag">exec</span>
-                                        <span class="skill-tag">cron</span>
-                                        <span class="skill-tag">sessions</span>
-                                        <span class="skill-tag">message</span>
-                                        <span class="skill-tag">web_search</span>
-                                        <span class="skill-tag">web_fetch</span>
-                                        <span class="skill-tag">browser</span>
-                                    </div>
-                                </div>
-                            `
-                        }
-                    </div>
-                </div>
-            `;
+            // Skills
+            html += '<div class="card wide skills-section">';
+            html += '<h2>🛠️ 已安裝 Skills (' + (data.skills?.length || 0) + ')</h2>';
+            html += '<div id="skills-container"></div>';
+            html += '</div>';
 
-            // Render Token Chart
+            html += '</div>';
+            content.innerHTML = html;
+
+            // Render Chart
             if (data.tokenHistory && data.tokenHistory.length > 0) {
                 renderTokenChart(data.tokenHistory);
             }
@@ -404,7 +380,7 @@
 
             const sortedData = [...tokenHistory].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
             const labels = sortedData.map(d => new Date(d.timestamp).toLocaleDateString('zh-HK', { month: 'short', day: 'numeric' }));
-            const data = sortedData.map(d => d.tokens);
+            const chartData = sortedData.map(d => d.tokens);
 
             tokenChart = new Chart(ctx, {
                 type: 'line',
@@ -412,7 +388,7 @@
                     labels: labels,
                     datasets: [{
                         label: 'Token Usage',
-                        data: data,
+                        data: chartData,
                         borderColor: '#7b2cbf',
                         backgroundColor: 'rgba(123, 44, 191, 0.1)',
                         borderWidth: 2,
@@ -427,31 +403,10 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: '#888'
-                            }
-                        },
-                        y: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: '#888',
-                                callback: function(value) {
-                                    return value.toLocaleString();
-                                }
-                            }
-                        }
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#888' } },
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#888', callback: function(value) { return value.toLocaleString(); } } }
                     }
                 }
             });
@@ -463,32 +418,17 @@
             }
 
             const categoryColors = {
-                'ai': 'badge-purple',
-                'communication': 'badge-blue',
-                'productivity': 'badge-green',
-                'utility': 'badge-cyan',
-                'system': 'badge-orange',
-                'integration': 'badge-pink',
-                'smart-home': 'badge-yellow',
-                'security': 'badge-red',
-                'setup': 'badge-indigo',
-                'database': 'badge-purple'
+                'ai': 'badge-purple', 'communication': 'badge-blue', 'productivity': 'badge-green',
+                'utility': 'badge-cyan', 'system': 'badge-orange', 'integration': 'badge-pink',
+                'smart-home': 'badge-yellow', 'security': 'badge-red', 'setup': 'badge-indigo', 'database': 'badge-purple'
             };
 
             const categoryNames = {
-                'ai': '🤖 AI',
-                'communication': '💬 通訊',
-                'productivity': '📊 生產力',
-                'utility': '🛠️ 工具',
-                'system': '⚙️ 系統',
-                'integration': '🔗 整合',
-                'smart-home': '🏠 智能家居',
-                'security': '🔒 安全',
-                'setup': '📋 設置',
-                'database': '🗄️ 數據庫'
+                'ai': '🤖 AI', 'communication': '💬 通訊', 'productivity': '📊 生產力', 'utility': '🛠️ 工具',
+                'system': '⚙️ 系統', 'integration': '🔗 整合', 'smart-home': '🏠 智能家居',
+                'security': '🔒 安全', 'setup': '📋 設置', 'database': '🗄️ 數據庫'
             };
 
-            // Group skills by category
             const grouped = skills.reduce((acc, skill) => {
                 const cat = skill.category || 'utility';
                 if (!acc[cat]) acc[cat] = [];
@@ -496,22 +436,24 @@
                 return acc;
             }, {});
 
-            return Object.entries(grouped).map(([category, categorySkills]) => `
-                <div class="skill-category">
-                    <div class="category-header">${categoryNames[category] || category}</div>
-                    <div class="category-skills">
-                        ${categorySkills.map(skill => `
-                            <span class="category-skill-tag ${categoryColors[category] || 'badge-blue'}">
-                                ${skill.name}
-                                ${skill.location !== 'built-in' ? `<span class="location">(${skill.location})</span>` : ''}
-                            </span>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
+            let html = '';
+            Object.entries(grouped).forEach(([category, categorySkills]) => {
+                html += '<div class="skill-category">';
+                html += '<div class="category-header">' + (categoryNames[category] || category) + '</div>';
+                html += '<div class="category-skills">';
+                categorySkills.forEach(skill => {
+                    html += '<span class="category-skill-tag ' + (categoryColors[category] || 'badge-blue') + '"\u003e' + skill.name;
+                    if (skill.location !== 'built-in') {
+                        html += '<span class="location">(' + skill.location + ')</span>';
+                    }
+                    html += '</span>';
+                });
+                html += '</div>';
+                html += '</div>';
+            });
+            return html;
         }
 
-        // 自動刷新每 30 秒
         loadData();
         setInterval(loadData, 30000);
     </script>
