@@ -10,4 +10,4 @@ compatibility_date = "2024-01-01"
 
 [[kv_namespaces]]
 binding = "OPENCLAW_MONITOR"
-id = "your-kv-namespace-id-here"
+id = "271de2f6901044278244d0c90cd0a935"
