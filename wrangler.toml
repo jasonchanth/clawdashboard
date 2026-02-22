@@ -1,0 +1,13 @@
+name = "clawdashboard"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# 環境變量（也可以在 Cloudflare Dashboard 設置）
+[vars]
+# USERNAME = "admin"
+# PASSWORD = "your-password"
+# AGENT_TOKEN = "your-agent-token"
+
+[[kv_namespaces]]
+binding = "OPENCLAW_MONITOR"
+id = "your-kv-namespace-id-here"
