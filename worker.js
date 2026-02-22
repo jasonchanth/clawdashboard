@@ -2,8 +2,8 @@
 // 部署到 Cloudflare Workers，需要綁定 KV namespace: OPENCLAW_MONITOR
 
 const USERNAME = 'admin';
-const PASSWORD = 'your-password-here';
-const AGENT_TOKEN = 'your-agent-token-change-this';  // Agent 認證 Token
+const PASSWORD = 'admin';
+const AGENT_TOKEN = 'vkBUqKitQ8vUwC5-P4ZPiD5SZTG-8AjhDt8jT1kE';  // Agent 認證 Token
 
 async function sha256(message) {
     const msgBuffer = new TextEncoder().encode(message);
